@@ -1,0 +1,32 @@
+[
+    {
+        "title": "Title Ascending",
+        "key": "title",
+        "reverse": false
+    },
+    {
+        "title": "Title Descending",
+        "key": "title",
+        "reverse": true
+    },
+    {
+        "title": "Score Ascending",
+        "key": "score",
+        "reverse": false
+    },
+    {
+        "title": "Score Descending",
+        "key": "score",
+        "reverse": true
+    },
+    {
+        "title": "Year Ascending",
+        "key": "year",
+        "reverse": false
+    },
+    {
+        "title": "Year Descending",
+        "key": "year",
+        "reverse": true
+    }
+]
