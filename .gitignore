@@ -1,2 +1,4 @@
 node_modules
+bower_components
+bootstrap-3.3.2-dist
 *.json
