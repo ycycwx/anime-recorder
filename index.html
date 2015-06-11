@@ -1,188 +1,181 @@
 <!DOCTYPE html>
 <html>
-    <head>
+  <head>
 
-        <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>Anime Recorder</title>
 
-        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"> -->
-        <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.5/angular.min.js"></script> -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="./bootstrap-3.3.2-dist/css/bootstrap.min.css">
+  </head>
 
-        <link rel="stylesheet" href="./bootstrap-3.3.2-dist/css/bootstrap.min.css">
-        <!-- <link rel="stylesheet" href="./css/anime_recorder.css"> -->
-        <script src="angular.min.js"></script>
+  <body ng-app="app" ng-controller="MainController" ng-style="showImage">
 
-        <!-- <script src= "app.js"></script> -->
-        <script src="controller.js"></script>
+    <div class="container" ng-style="containerCss">
 
-    </head>
+      <!-- <div class="page-header"> -->
+      <div class="jumbotron">
+        <h1 ng-bind="name"></h1> 
+        <p>Record your anime</p> 
+      </div>
 
-    <body ng-app="app" ng-controller="MainController" ng-style="showImage">
+      <div class="rows">
 
-        <div class="container" ng-style="containerCss">
+        <div class="input-group">
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-search"></span>
+          </span>
+          <input type="text" class="form-control" ng-model="searchInput.title">
+        </div>
+      </div>
 
-            <!-- <div class="page-header"> -->
-            <div class="jumbotron">
-                <h1 ng-bind="name"></h1> 
-                <p>Record your anime</p> 
-            </div>
+      <!-- <select ng-repeat="(name, values) in shows" ng-model="shows[name]" ng-options="v for v in values"></select> -->
 
-            <div class="rows">
+      <hr>
 
-                <!--
-                   - <div class="col-sm-2">
-                   -     <select class="form-control" ng-model="order" ng-options="order as order.title for order in orders"></select>
-                   - </div>
-                   -->
+      <div class="rows">
+        <form role="form">
+          <div class="form-group col-sm-3">
+            <label>Sorted By:</label>
+            <select class="form-control" ng-model="order" ng-options="order as order.title for order in orders"></select>
+          </div>
 
-                <div class="input-group">
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-search"></span>
-                    </span>
-                    <input type="text" class="form-control" ng-model="searchInput.title">
-                </div>
-            </div>
+          <div class="form-group col-sm-3">
+            <label>Done or not:</label>
+            <select class="form-control" ng-model="complete" ng-options="complete for complete in completes"></select>
+          </div>
 
-            <!-- <select ng-repeat="(name, values) in shows" ng-model="shows[name]" ng-options="v for v in values"></select> -->
+          <div class="form-group col-sm-2">
+            <label>Filter by score:</label>
+            <input class="form-control" type="number" ng-model="bottom" max=100 min=0 ng-init="bottom=0">
+          </div>
 
-            <hr>
+          <div class="form-group col-sm-2">
+            <label>Start year:</label>
+            <select class="form-control" ng-init="startYear=1960" ng-model="startYear" ng-options="n for n in [] | range:1960:2100"></select>
+          </div>
 
-            <div class="rows">
-                <form role="form">
-                    <div class="form-group col-sm-3">
-                        <label>Sorted By:</label>
-                        <select class="form-control" ng-model="order" ng-options="order as order.title for order in orders"></select>
-                    </div>
+          <div class="form-group col-sm-2">
+            <label>End year:</label>
+            <select class="form-control" ng-init="endYear=currentYear" ng-model="endYear" ng-options="n for n in [] | range:1960:2100"></select>
+          </div>
+        </form>
+      </div>
 
-                    <div class="form-group col-sm-3">
-                        <label>Done or not:</label>
-                        <select class="form-control" ng-model="complete" ng-options="complete for complete in completes"></select>
-                    </div>
+      <div class="rows">
+        Average Score: <h2 ng-bind="calAvg()"></h2>
+      </div>
 
-                    <div class="form-group col-sm-2">
-                        <label>Filter by score:</label>
-                        <input class="form-control" type="number" ng-model="bottom" max=100 min=0 ng-init="bottom=0">
-                    </div>
+      <hr>
 
-                    <div class="form-group col-sm-2">
-                        <label>Start year:</label>
-                        <select class="form-control" ng-init="startYear=1960" ng-model="startYear" ng-options="n for n in [] | range:1960:2100"></select>
-                    </div>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Edit / Del</th>
+            <th>Title</th>
+            <th>Episode</th>
+            <th>Score</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="show in filtered = (shows | filter : searchInput | filter : filterDone | filter : filterBottom | filter : filterYear | orderBy : order.key : order.reverse) | limitTo : totalDisp">
+            <!-- limitTo : 3 -->
+            <td>
+              <button class="btn btn-sm" ng-click="editShow(show)">
+                <span class="glyphicon glyphicon-pencil"></span> Edit
+              </button>
+            </td>
+            <td>
+              <button class="btn btn-xs btn-danger" ng-click="delShow(show)">
+                <span class="glyphicon glyphicon-minus-sign"></span>
+              </button>
+              <span class="glyphicon glyphicon-star" ng-if="show.score >= 90"></span>
+              {{ show.title }}
+            </td>
+            <td>
+              <button class="btn btn-xs btn-primary" ng-click="addOne(show)">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+              </button>
+              {{ show.episode }}
+            </td>
+            <td>{{ show.score }}</td>
+            <td>{{ show.note }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-                    <div class="form-group col-sm-2">
-                        <label>End year:</label>
-                        <select class="form-control" ng-init="endYear=currentYear" ng-model="endYear" ng-options="n for n in [] | range:1960:2100"></select>
-                    </div>
-                </form>
-            </div>
+      <center>
+        <button class="btn btn-warning btn-lg" ng-if="moreSign" ng-click="loadMore()">Load more</button>
+      </center>
 
-            <div class="rows">
-                Average Score: <h2 ng-bind="calAvg()"></h2>
-            </div>
+      <hr>
+      <button class="btn btn-success" ng-click="editShow('new')">
+        <span href="#" class="glyphicon glyphicon-plus-sign"></span>  Create New Anime
+      </button>
+      <hr>
 
-            <hr>
+      <h3 ng-show="edit">Create New Anime:</h3>
+      <h3 ng-hide="edit">Edit Anime:</h3>
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Edit / Del</th>
-                        <th>Title</th>
-                        <th>Episode</th>
-                        <th>Score</th>
-                        <th>Note</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="show in filtered = (shows | filter : searchInput | filter : filterDone | filter : filterBottom | filter : filterYear | orderBy : order.key : order.reverse) | limitTo : totalDisp">
-                        <!-- limitTo : 3 -->
-                        <td>
-                            <button class="btn btn-sm" ng-click="editShow(show)">
-                                <span class="glyphicon glyphicon-pencil"></span> Edit
-                            </button>
-                        </td>
-                        <td>
-                            <button class="btn btn-xs btn-danger" ng-click="delShow(show)">
-                                <span class="glyphicon glyphicon-minus-sign"></span>
-                            </button>
-                            <span class="glyphicon glyphicon-star" ng-if="show.score >= 90"></span>
-                            {{ show.title }}
-                        </td>
-                        <td>
-                            <button class="btn btn-xs btn-primary" ng-click="addOne(show)">
-                                <span class="glyphicon glyphicon-plus-sign"></span>
-                            </button>
-                            {{ show.episode }}
-                        </td>
-                        <td>{{ show.score }}</td>
-                        <td>{{ show.note }}</td>
-                    </tr>
-                </tbody>
-            </table>
+      <form class="form-horizontal" ng-submit="addShow()">
 
-            <center>
-                <button class="btn btn-warning btn-lg" ng-if="moreSign" ng-click="loadMore()">Load more</button>
-            </center>
- 
-            <hr>
-            <button class="btn btn-success" ng-click="editShow('new')">
-                <span href="#" class="glyphicon glyphicon-plus-sign"></span>  Create New Anime
-            </button>
-            <hr>
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Title:</label>
+            <input class="form-control" type="text" ng-model="newShow.title" ng-disabled="!edit" placeholder="Please input title of anime" required>
+          </div>
+        </div> 
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Episode:</label>
+            <input class="form-control" type="number" ng-model="newShow.episode" max=1000 min=0 placeholder="Episode you have watched" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Score:</label>
+            <input class="form-control" type="number" ng-model="newShow.score" max=100 min=0 placeholder="Your score on this anime" required>
+          </div>
+        </div>
 
-            <h3 ng-show="edit">Create New Anime:</h3>
-            <h3 ng-hide="edit">Edit Anime:</h3>
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Year:</label>
+            <!-- <input class="form-control" type="text" ng-model="newShow.year" placeholder="Year of show" required> -->
+            <select class="form-control" ng-init="newShow.year=currentYear" ng-model="newShow.year" ng-options="n for n in [] | range:1960:2100"></select>
+          </div>
+        </div>
 
-            <form class="form-horizontal" ng-submit="addShow()">
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Note:</label>
+            <input class="form-control" type="text" ng-model="newShow.note" placeholder="Point of view">
+            <!-- <textarea class="form-control" rows="5"
+              ng-model="main.new.note" placeholder="Point of view"></textarea> -->
+          </div>
+        </div>
 
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Title:</label>
-                        <input class="form-control" type="text" ng-model="newShow.title" ng-disabled="!edit" placeholder="Please input title of anime" required>
-                    </div>
-                </div> 
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Episode:</label>
-                        <input class="form-control" type="number" ng-model="newShow.episode" max=1000 min=0 placeholder="Episode you have watched" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Score:</label>
-                        <input class="form-control" type="number" ng-model="newShow.score" max=100 min=0 placeholder="Your score on this anime" required>
-                    </div>
-                </div>
+        <div class="form-group">
+          <div class="col-sm-4">
+            <label class="control-label">Done:</label>
+            <input class="form-control" type="checkbox" ng-model="newShow.done" ng-init="newShow.done=false">
+          </div>
+        </div>
 
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Year:</label>
-                        <!-- <input class="form-control" type="text" ng-model="newShow.year" placeholder="Year of show" required> -->
-                        <select class="form-control" ng-init="newShow.year=currentYear" ng-model="newShow.year" ng-options="n for n in [] | range:1960:2100"></select>
-                    </div>
-                </div>
+        <!-- <button class="btn btn-success" ng-disabled="error || incomplete"> -->
+        <button class="btn btn-success">
+          <span class="glyphicon glyphicon-save"></span>  Save Changes
+        </button>
+      </form>
 
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Note:</label>
-                        <input class="form-control" type="text" ng-model="newShow.note" placeholder="Point of view">
-                        <!-- <textarea class="form-control" rows="5"
-                            ng-model="main.new.note" placeholder="Point of view"></textarea> -->
-                    </div>
-                </div>
+      </div>
 
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label class="control-label">Done:</label>
-                        <input class="form-control" type="checkbox" ng-model="newShow.done" ng-init="newShow.done=false">
-                    </div>
-                </div>
+      <!-- AngularJS -->
+      <script src="angular.min.js"></script>
 
-                <!-- <button class="btn btn-success" ng-disabled="error || incomplete"> -->
-                <button class="btn btn-success">
-                    <span class="glyphicon glyphicon-save"></span>  Save Changes
-                </button>
-            </form>
+      <!-- Controller -->
+      <script src="controller.js"></script>
 
-            </div>
-
-    </body>
+  </body>
 </html>
