@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
@@ -14,26 +16,24 @@ app.use(methodOverride()); 					// simulate DELETE and PUT
 app.use(express.static(__dirname));
 // app.use(express.static(__dirname, '/public'));
 
+// Connect MongoDB
 mongoose.connect('mongodb://localhost/test', function(err) {
-    if(err) {
-        console.log('connection error', err);
-    } else {
-        console.log('connection successful');
-    }
+  if(err) {
+    console.log('connection error', err);
+  } else {
+    console.log('connection successful');
+  }
 });
 
+// Routes
 routes = require('./routes/animes')(app);
 
+// Index page
 app.get('/', function(req, res){
   res.render('index.html');
 });
 
-app.post('/test', function(req, res){
-  // res.render('');
-  console.log(req.body.msg);
-  res.send('hello!');
-});
-
+// Start server
 var server = app.listen(5000, function () {
 
   var host = server.address().address
